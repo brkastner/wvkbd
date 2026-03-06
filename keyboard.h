@@ -54,6 +54,8 @@ struct clr_scheme {
 	Color high;
 	Color swipe;
 	Color text;
+	Color text_press;
+	Color text_swipe;
 	char *font;
 	int rounding;
 	PangoFontDescription *font_description;

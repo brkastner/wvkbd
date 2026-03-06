@@ -616,19 +616,26 @@ kbd_draw_key(struct kbd *kb, struct key *k, enum key_draw_type type)
     case Unpress:
         draw_inset(kb->surf, k->x, k->y, k->w, k->h, KBD_KEY_BORDER,
                    scheme->fg, scheme->rounding);
+        drw_draw_text(kb->surf, scheme->text, k->x, k->y, k->w, k->h,
+                  KBD_KEY_BORDER, label, scheme->font_description);
         break;
     case Press:
         draw_inset(kb->surf, k->x, k->y, k->w, k->h, KBD_KEY_BORDER,
                    scheme->high, scheme->rounding);
+        drw_draw_text(kb->surf, scheme->text_press, k->x, k->y, k->w, k->h,
+                  KBD_KEY_BORDER, label, scheme->font_description);
         break;
     case Swipe:
         draw_over_inset(kb->surf, k->x, k->y, k->w, k->h, KBD_KEY_BORDER,
                         scheme->swipe, scheme->rounding);
+        drw_draw_text(kb->surf, scheme->text_swipe, k->x, k->y, k->w, k->h,
+                  KBD_KEY_BORDER, label, scheme->font_description);
         break;
+    default:
+        drw_draw_text(kb->surf, scheme->text, k->x, k->y, k->w, k->h,
+                  KBD_KEY_BORDER, label, scheme->font_description);
     }
 
-    drw_draw_text(kb->surf, scheme->text, k->x, k->y, k->w, k->h,
-                  KBD_KEY_BORDER, label, scheme->font_description);
 
     if (type == Press || type == Unpress) {
         kbd_clear_last_popup(kb);
@@ -642,7 +649,7 @@ kbd_draw_key(struct kbd *kb, struct key *k, enum key_draw_type type)
                            kb->last_popup_y, k->w, k->h, scheme->rounding);
         draw_inset(kb->popup_surf, k->x, kb->last_popup_y, k->w, k->h,
                    KBD_KEY_BORDER, scheme->high, scheme->rounding);
-        drw_draw_text(kb->popup_surf, scheme->text, k->x, kb->last_popup_y,
+        drw_draw_text(kb->popup_surf, scheme->text_press, k->x, kb->last_popup_y,
                       k->w, k->h, KBD_KEY_BORDER, label,
                       scheme->font_description);
     }

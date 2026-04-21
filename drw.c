@@ -136,6 +136,7 @@ drw_draw_text(struct drwsurf *ds, Color color, uint32_t x, uint32_t y,
     cairo_save(d->cairo);
 
     pango_layout_set_font_description(d->layout, font_description);
+    pango_layout_set_alignment(d->layout, PANGO_ALIGN_LEFT);
 
     cairo_set_source_rgba(
         d->cairo, color.bgra[2] / (double)255, color.bgra[1] / (double)255,
@@ -152,6 +153,46 @@ drw_draw_text(struct drwsurf *ds, Color color, uint32_t x, uint32_t y,
     cairo_rel_move_to(d->cairo, -width / 2, -height / 2);
 
     pango_cairo_show_layout(d->cairo, d->layout);
+    cairo_restore(d->cairo);
+}
+
+void
+drw_draw_text_hint(struct drwsurf *ds, Color color, uint32_t x, uint32_t y,
+                   uint32_t w, uint32_t h, uint32_t b, const char *label,
+                   PangoFontDescription *font_description)
+{
+    if (!label || !*label)
+        return;
+
+    drwsurf_flip(ds);
+    struct drwbuf *d = ds->back_buffer;
+    drwsurf_damage(ds, x, y, w, h);
+
+    cairo_save(d->cairo);
+
+    PangoFontDescription *hint_font = pango_font_description_copy(font_description);
+    gint font_size = pango_font_description_get_size(hint_font);
+    if (font_size > 0)
+        pango_font_description_set_size(hint_font, (gint)(font_size * 0.55));
+
+    pango_layout_set_font_description(d->layout, hint_font);
+    pango_layout_set_text(d->layout, label, -1);
+    pango_layout_set_width(d->layout, -1);
+    pango_layout_set_height(d->layout, -1);
+    pango_layout_set_alignment(d->layout, PANGO_ALIGN_LEFT);
+
+    int width, height;
+    pango_layout_get_pixel_size(d->layout, &width, &height);
+
+    cairo_set_source_rgba(d->cairo,
+                          0x9c / 255.0,
+                          0xcf / 255.0,
+                          0xd8 / 255.0,
+                          (color.bgra[3] / (double)255) * 0.9);
+    cairo_move_to(d->cairo, x + w - width - (b + 8), y + h - height - (b + 4));
+    pango_cairo_show_layout(d->cairo, d->layout);
+
+    pango_font_description_free(hint_font);
     cairo_restore(d->cairo);
 }
 

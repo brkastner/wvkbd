@@ -77,6 +77,7 @@ struct key {
 	const uint32_t code_mod; /* modifier to force when this key is pressed */
 	uint8_t scheme;          // index of the scheme to use
 	bool reset_mod;          /* reset modifiers when clicked */
+	const char *hint_label;  // optional small hint label
 
 	// actual coordinates on the surface (pixels), will be computed automatically
 	// for all keys

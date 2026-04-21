@@ -51,6 +51,8 @@ static bool layer_surface_configured;
 
 static uint32_t available_width, available_height = 0;
 static void refresh_available_dimension();
+static uint32_t keyboard_width = 0;
+static uint32_t bottom_margin = 96;
 
 /* drawing */
 static struct drw draw_ctx;
@@ -59,9 +61,7 @@ static struct drwsurf draw_surf, popup_draw_surf;
 
 /* layer surface parameters */
 static uint32_t layer = ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY;
-static uint32_t anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM |
-                         ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT |
-                         ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT;
+static uint32_t anchor = ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM;
 
 /* application state */
 static bool run_display = true;
@@ -504,6 +504,11 @@ redimension_keyboard()
 
     keyboard.w = available_width;
     keyboard.h = height;
+    keyboard_width = available_width / 3;
+    if (keyboard_width == 0) {
+        keyboard_width = available_width;
+    }
+    keyboard.w = keyboard_width;
     keyboard.layout = &keyboard.layouts[layer];
     keyboard.layer_index = 0;
     keyboard.prevlayout = keyboard.layout;
@@ -719,8 +724,9 @@ show()
     layer_surface = zwlr_layer_shell_v1_get_layer_surface(
         layer_shell, draw_surf.surf, current_output_data, layer, namespace);
 
-    zwlr_layer_surface_v1_set_size(layer_surface, 0, height);
+    zwlr_layer_surface_v1_set_size(layer_surface, keyboard_width, height);
     zwlr_layer_surface_v1_set_anchor(layer_surface, anchor);
+    zwlr_layer_surface_v1_set_margin(layer_surface, 0, 0, bottom_margin, 0);
     if (keyboard.exclusive) {
         zwlr_layer_surface_v1_set_exclusive_zone(layer_surface, height);
     }

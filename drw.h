@@ -53,6 +53,9 @@ void drw_over_rectangle(struct drwsurf *ds, Color color, uint32_t x, uint32_t y,
 void drw_draw_text(struct drwsurf *ds, Color color, uint32_t x, uint32_t y,
                    uint32_t w, uint32_t h, uint32_t b, const char *label,
                    PangoFontDescription *font_description);
+void drw_draw_text_hint(struct drwsurf *ds, Color color, uint32_t x, uint32_t y,
+                        uint32_t w, uint32_t h, uint32_t b, const char *label,
+                        PangoFontDescription *font_description);
 
 uint32_t setup_buffer(struct drwsurf *ds, struct drwbuf *db);
 

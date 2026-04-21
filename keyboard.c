@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <ctype.h>
+#include <glib.h>
 #include "keyboard.h"
 #include "drw.h"
 #include "os-compatibility.h"
@@ -19,6 +20,19 @@
 #error "make sure to define KEYMAP"
 #endif
 #include KEYMAP
+
+static bool
+key_label_is_alpha(const char *label)
+{
+    if (!label || !*label)
+        return false;
+
+    gunichar ch = g_utf8_get_char(label);
+    if (ch == (gunichar)-1 || ch == (gunichar)-2)
+        return false;
+
+    return g_unichar_isalpha(ch);
+}
 
 void
 kbd_switch_layout(struct kbd *kb, struct layout *l, size_t layer_index)
@@ -586,8 +600,8 @@ kbd_print_key_stdout(struct kbd *kb, struct key *k)
     }
 
     if (!handled) {
-        if ((kb->mods & Shift) || 
-            ((kb->mods & CapsLock) & (strlen(k->label) == 1 && isalpha(k->label[0]))))
+        if ((kb->mods & Shift) ||
+            ((kb->mods & CapsLock) && key_label_is_alpha(k->label)))
             kbd_print_first_utf8_char_stdout(k->shift_label);
         else if (!(kb->mods & Ctrl) && !(kb->mods & Alt) && !(kb->mods & Super))
             kbd_print_first_utf8_char_stdout(k->label);
@@ -629,8 +643,9 @@ kbd_clear_last_popup(struct kbd *kb)
 void
 kbd_draw_key(struct kbd *kb, struct key *k, enum key_draw_type type)
 {
-    const char *label = ((kb->mods & Shift)||((kb->mods & CapsLock) && 
-        strlen(k->label) == 1 && isalpha(k->label[0]))) ? k->shift_label : k->label;
+    const char *label = ((kb->mods & Shift) ||
+        ((kb->mods & CapsLock) && key_label_is_alpha(k->label))) ? k->shift_label : k->label;
+    const char *hint_label = k->hint_label;
     if (kb->debug)
         fprintf(stderr, "Draw key +%d+%d %dx%d -> %s\n", k->x, k->y, k->w, k->h,
                 label);
@@ -643,22 +658,30 @@ kbd_draw_key(struct kbd *kb, struct key *k, enum key_draw_type type)
                    scheme->fg, scheme->rounding);
         drw_draw_text(kb->surf, scheme->text, k->x, k->y, k->w, k->h,
                   KBD_KEY_BORDER, label, scheme->font_description);
+        drw_draw_text_hint(kb->surf, scheme->text, k->x, k->y, k->w, k->h,
+                  KBD_KEY_BORDER, hint_label, scheme->font_description);
         break;
     case Press:
         draw_inset(kb->surf, k->x, k->y, k->w, k->h, KBD_KEY_BORDER,
                    scheme->high, scheme->rounding);
         drw_draw_text(kb->surf, scheme->text_press, k->x, k->y, k->w, k->h,
                   KBD_KEY_BORDER, label, scheme->font_description);
+        drw_draw_text_hint(kb->surf, scheme->text_press, k->x, k->y, k->w, k->h,
+                  KBD_KEY_BORDER, hint_label, scheme->font_description);
         break;
     case Swipe:
         draw_over_inset(kb->surf, k->x, k->y, k->w, k->h, KBD_KEY_BORDER,
                         scheme->swipe, scheme->rounding);
         drw_draw_text(kb->surf, scheme->text_swipe, k->x, k->y, k->w, k->h,
                   KBD_KEY_BORDER, label, scheme->font_description);
+        drw_draw_text_hint(kb->surf, scheme->text_swipe, k->x, k->y, k->w, k->h,
+                  KBD_KEY_BORDER, hint_label, scheme->font_description);
         break;
     default:
         drw_draw_text(kb->surf, scheme->text, k->x, k->y, k->w, k->h,
                   KBD_KEY_BORDER, label, scheme->font_description);
+        drw_draw_text_hint(kb->surf, scheme->text, k->x, k->y, k->w, k->h,
+                  KBD_KEY_BORDER, hint_label, scheme->font_description);
     }
 
 
